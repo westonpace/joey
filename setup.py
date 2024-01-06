@@ -1,4 +1,4 @@
-import os, sys
+import os, re, sys
 from setuptools import setup, find_packages, Extension
 import distutils.sysconfig as sysconfig
 import pyarrow
@@ -14,10 +14,18 @@ PYTHON_VERSION = f"{sys.version_info.major}.{sys.version_info.minor}"
 
 # Compiler and linker flags
 extra_compile_args = ['-O3', '-g', '-fPIC', '-std=c++17', f'-I{ARROW_PATH}/include/', f'-I{PYTHON_INCLUDE_DIR}']
-extra_link_args = [f'-L{PYTHON_LIB_DIR}', '-Wl,-rpath,' + PYTHON_LIB_DIR]
-# extra_link_args += ['-l:libarrow.so.1400', '-l:libarrow_python.so', '-lsqlite3']
-extra_link_args += ['-l:libarrow.so.1400', '-larrow_python', '-lsqlite3']
-# extra_link_args += ['-l:libarrow.so.1400', '-lsqlite3']
+extra_link_args = [f'-L{PYTHON_LIB_DIR}', '-L{ARROW_PATH}', '-Wl,-rpath,' + PYTHON_LIB_DIR]
+extra_link_args += ['-larrow', '-larrow_python', '-lsqlite3']
+
+for file in os.listdir(ARROW_PATH):
+    if file.endswith(".1400.dylib"):
+        short_name = file[:-11] + ".dylib"
+        print(f"Creating symlink from {ARROW_PATH}/{file} TO {ARROW_PATH}/{short_name}")
+        if not os.path.exists(f"{ARROW_PATH}/{short_name}"):
+            print(f"Skipping symlink from {ARROW_PATH}/{file} because f{ARROW_PATH}/{short_name} exists")
+            os.symlink(f"{ARROW_PATH}/{file}", f"{ARROW_PATH}/{short_name}")
+    else:
+        print(f"Ignoring {file}")
 
 # Define the extension modules
 extensions = [
