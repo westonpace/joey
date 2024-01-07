@@ -17,9 +17,17 @@ extra_compile_args = ['-O3', '-g', '-fPIC', '-std=c++17', f'-I{ARROW_PATH}/inclu
 extra_link_args = [f'-L{PYTHON_LIB_DIR}', '-L{ARROW_PATH}', '-Wl,-rpath,' + PYTHON_LIB_DIR]
 extra_link_args += ['-larrow', '-larrow_python', '-lsqlite3']
 
+# Pyarrow distributions contain the shared libraries that we want to link with.  However, they are not named
+# consistently.  Some libraries are named .(so|dylib) and some are named .1400.(so|dylib) where 1400 is the
+# version number.  In order to link to these latter files we need to create symlinks named .(so|dylib).
 for file in os.listdir(ARROW_PATH):
-    if file.endswith(".1400.dylib"):
+    if re.match("\\.\\d\\d\\d\\d\\.dylib"):
         short_name = file[:-11] + ".dylib"
+    elif re.match("\\.\\d\\d\\d\\d\\.so"):
+        short_name = file[:-8] + ".so"
+    else:
+        short_name = None
+    if short_name:
         print(f"Creating symlink from {ARROW_PATH}/{file} TO {ARROW_PATH}/{short_name}")
         if not os.path.exists(f"{ARROW_PATH}/{short_name}"):
             print(f"Skipping symlink from {ARROW_PATH}/{file} because f{ARROW_PATH}/{short_name} exists")
