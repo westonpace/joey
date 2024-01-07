@@ -21,9 +21,9 @@ extra_link_args += ['-larrow', '-larrow_python', '-lsqlite3']
 # consistently.  Some libraries are named .(so|dylib) and some are named .1400.(so|dylib) where 1400 is the
 # version number.  In order to link to these latter files we need to create symlinks named .(so|dylib).
 for file in os.listdir(ARROW_PATH):
-    if re.match("\\.\\d\\d\\d\\d\\.dylib", file):
+    if re.search("\\.\\d\\d\\d\\d\\.dylib", file):
         short_name = file[:-11] + ".dylib"
-    elif re.match("\\.\\d\\d\\d\\d\\.so", file):
+    elif re.search("\\.\\d\\d\\d\\d\\.so", file):
         short_name = file[:-8] + ".so"
     else:
         short_name = None
